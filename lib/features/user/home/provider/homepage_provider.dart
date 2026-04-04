@@ -12,7 +12,8 @@ class HomepageProvider extends ChangeNotifier {
 
   TextEditingController searchController = TextEditingController();
 
-  bool isLoading = false;
+  bool isPageLoading = false; // for init / API
+  bool isSearching = false; // for search button
   String? error;
   String? currentLocationName;
   String? selectedLocationName;
@@ -21,17 +22,21 @@ class HomepageProvider extends ChangeNotifier {
 
   void setSearch(String value) async {
     if (value.trim().isNotEmpty) {
-      isLoading = true;
+      isSearching = true;
       notifyListeners();
+
       await Future.delayed(const Duration(milliseconds: 400));
     }
+
     searchQuery = value.toLowerCase();
+
     if (value.trim().isNotEmpty) {
       selectedLocationName = value;
     } else {
       selectedLocationName = currentLocationName;
     }
-    isLoading = false;
+
+    isSearching = false;
     notifyListeners();
   }
 
@@ -57,7 +62,7 @@ class HomepageProvider extends ChangeNotifier {
 
   Future<void> getCurrentLocation() async {
     try {
-      isLoading = true;
+      isPageLoading = true;
       notifyListeners();
 
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
@@ -102,7 +107,7 @@ class HomepageProvider extends ChangeNotifier {
       error = "Failed to get location";
       currentLocationName = "Error getting location";
     } finally {
-      isLoading = false;
+      isPageLoading = false;
       notifyListeners();
     }
   }
@@ -131,7 +136,7 @@ class HomepageProvider extends ChangeNotifier {
     if (currentPosition == null) return;
 
     try {
-      isLoading = true;
+      isPageLoading = true;
       notifyListeners();
 
       final snapshot = await FirebaseFirestore.instance
@@ -173,7 +178,7 @@ class HomepageProvider extends ChangeNotifier {
     } catch (e) {
       error = "Failed to load parkings";
     } finally {
-      isLoading = false;
+      isPageLoading = false;
       notifyListeners();
     }
   }

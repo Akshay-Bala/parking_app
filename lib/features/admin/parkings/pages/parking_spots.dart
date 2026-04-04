@@ -300,12 +300,29 @@ class UsersListPage extends StatelessWidget {
 
                                       Row(
                                         children: [
-                                          const Icon(
-                                            Icons.location_on,
-                                            size: 14,
-                                            color: Colors.grey,
+                                          InkWell(
+                                            onTap: () => openMap(data),
+                                            borderRadius: BorderRadius.circular(
+                                              10,
+                                            ),
+                                            child: Container(
+                                              padding: const EdgeInsets.all(8),
+                                              decoration: BoxDecoration(
+                                                color: Colors.transparent,
+                                                // color: const Color(
+                                                //   0xFF2563EB,
+                                                // ).withOpacity(0.1),
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
+                                              ),
+                                              child: const Icon(
+                                                Icons.location_pin,
+                                                size: 18,
+                                                color: Color(0xFF2563EB),
+                                              ),
+                                            ),
                                           ),
-                                          const SizedBox(width: 4),
+                                          const SizedBox(width: 5),
                                           Expanded(
                                             child: Text(
                                               data['locationName'] ??
@@ -371,55 +388,36 @@ class UsersListPage extends StatelessWidget {
                                           ),
                                         ],
                                       ),
-                                      Row(
-                                        children: [
-                                          InkWell(
-                                            onTap: () => openMap(data),
-                                            borderRadius: BorderRadius.circular(
-                                              10,
-                                            ),
-                                            child: Container(
-                                              padding: const EdgeInsets.all(8),
-                                              decoration: BoxDecoration(
-                                                color: const Color(
-                                                  0xFF2563EB,
-                                                ).withOpacity(0.1),
-                                                borderRadius:
-                                                    BorderRadius.circular(10),
-                                              ),
-                                              child: const Icon(
-                                                Icons.map,
-                                                size: 18,
-                                                color: Color(0xFF2563EB),
-                                              ),
-                                            ),
-                                          ),
-
-                                          const SizedBox(width: 10),
-
-                                          InkWell(
-                                            onTap: () => callNumber(data),
-                                            borderRadius: BorderRadius.circular(
-                                              10,
-                                            ),
-                                            child: Container(
-                                              padding: const EdgeInsets.all(8),
-                                              decoration: BoxDecoration(
-                                                color: Colors.green.withOpacity(
-                                                  0.1,
-                                                ),
-                                                borderRadius:
-                                                    BorderRadius.circular(10),
-                                              ),
-                                              child: const Icon(
-                                                Icons.call,
-                                                size: 18,
-                                                color: Colors.green,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
+                                      const SizedBox(height: 5),
+                                      // Row(
+                                      //   children: [
+                                      //
+                                      //
+                                      //     const SizedBox(width: 10),
+                                      //
+                                      //     InkWell(
+                                      //       onTap: () => callNumber(data),
+                                      //       borderRadius: BorderRadius.circular(
+                                      //         10,
+                                      //       ),
+                                      //       child: Container(
+                                      //         padding: const EdgeInsets.all(8),
+                                      //         decoration: BoxDecoration(
+                                      //           color: Colors.green.withOpacity(
+                                      //             0.1,
+                                      //           ),
+                                      //           borderRadius:
+                                      //               BorderRadius.circular(10),
+                                      //         ),
+                                      //         child: const Icon(
+                                      //           Icons.call,
+                                      //           size: 18,
+                                      //           color: Colors.green,
+                                      //         ),
+                                      //       ),
+                                      //     ),
+                                      //   ],
+                                      // ),
                                     ],
                                   ),
                                 ),

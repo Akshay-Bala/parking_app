@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:parking_app/features/admin/parkings/pages/parking_details_page.dart';
+import 'package:parking_app/features/user/home/pages/user_view_parking_detailed_page.dart';
 import 'package:parking_app/features/user/home/provider/homepage_provider.dart';
 import 'package:parking_app/features/user/profile/pages/profile_page.dart';
 import 'package:provider/provider.dart';
@@ -27,7 +29,6 @@ class _HomepageEventsState extends State<HomepageEvents> {
       children: [
         Scaffold(
           backgroundColor: const Color(0xFFF5F7FA),
-
           appBar: AppBar(
             backgroundColor: Colors.white,
             elevation: 0,
@@ -134,7 +135,7 @@ class _HomepageEventsState extends State<HomepageEvents> {
                             listen: false,
                           ).setSearch(query);
                         },
-                        child: provider.isLoading
+                        child: provider.isSearching
                             ? const SizedBox(
                                 height: 18,
                                 width: 18,
@@ -157,7 +158,7 @@ class _HomepageEventsState extends State<HomepageEvents> {
                 Expanded(
                   child: Consumer<HomepageProvider>(
                     builder: (context, provider, _) {
-                      if (provider.isLoading) {
+                      if (provider.isPageLoading) {
                         return const Center(child: CircularProgressIndicator());
                       }
 
@@ -209,18 +210,13 @@ class _HomepageEventsState extends State<HomepageEvents> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   const SizedBox(height: 4),
-
                                   Text(data['locationName'] ?? ""),
-
                                   const SizedBox(height: 4),
-
                                   Text(
                                     "🚗 Available: ${data['availableSlots']}",
                                     style: const TextStyle(color: Colors.green),
                                   ),
-
                                   const SizedBox(height: 4),
-
                                   Text(
                                     "📍 ${data['distance'].toStringAsFixed(2)} km away",
                                     style: const TextStyle(
@@ -236,7 +232,16 @@ class _HomepageEventsState extends State<HomepageEvents> {
                                 size: 16,
                               ),
 
-                              onTap: () {},
+                              /// ✅ NAVIGATION HERE
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        UserViewParkingDetailedPage(data: data),
+                                  ),
+                                );
+                              },
                             ),
                           );
                         },
