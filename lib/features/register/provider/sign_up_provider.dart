@@ -5,13 +5,24 @@ import 'package:flutter/material.dart';
 class SignUpProvider extends ChangeNotifier {
   bool isLoading = false;
 
-  final formKey = GlobalKey<FormState>();
-
   TextEditingController usernameController = TextEditingController();
   TextEditingController phoneController = TextEditingController();
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
   TextEditingController confirmPasswordController = TextEditingController();
+
+  bool isPasswordVisible = false;
+  bool isConfirmPasswordVisible = false;
+
+  void togglePasswordVisibility() {
+    isPasswordVisible = !isPasswordVisible;
+    notifyListeners();
+  }
+
+  void toggleConfirmPasswordVisibility() {
+    isConfirmPasswordVisible = !isConfirmPasswordVisible;
+    notifyListeners();
+  }
 
   String? validateUsername(String? value) {
     if (value == null || value.isEmpty) return "Username required";
@@ -69,12 +80,18 @@ class SignUpProvider extends ChangeNotifier {
           );
 
       final userId = credential.user!.uid;
+      final phone = int.tryParse(phoneController.text.trim());
 
+      if (phone == null) {
+        isLoading = false;
+        notifyListeners();
+        return "Invalid phone number";
+      }
       await FirebaseFirestore.instance.collection("users").doc(userId).set({
         "userId": userId,
         "username": usernameController.text.trim(),
         "email": emailController.text.trim(),
-        "phone": phoneController.text.trim(),
+        "phone": phone,
       });
 
       isLoading = false;
@@ -97,6 +114,14 @@ class SignUpProvider extends ChangeNotifier {
       isLoading = false;
       notifyListeners();
       return "Something went wrong";
-    }
+    } finally {}
+  }
+
+  clearFields() {
+    usernameController.clear();
+    phoneController.clear();
+    emailController.clear();
+    passwordController.clear();
+    confirmPasswordController.clear();
   }
 }

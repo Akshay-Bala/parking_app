@@ -10,14 +10,14 @@ class LoginPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<LoginProvider>(context);
-
+    final _formKey = GlobalKey<FormState>();
     return Scaffold(
       backgroundColor: Colors.white,
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Form(
-            key: provider.formKey,
+            key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -49,7 +49,7 @@ class LoginPage extends StatelessWidget {
                     return null;
                   },
                   decoration: InputDecoration(
-                    labelText: "Email",
+                    hintText: "Email",
                     prefixIcon: const Icon(Icons.email_outlined),
                     filled: true,
                     fillColor: const Color(0xFFF1F5F9),
@@ -64,7 +64,7 @@ class LoginPage extends StatelessWidget {
 
                 TextFormField(
                   controller: provider.passwordLoginController,
-                  obscureText: true,
+                  obscureText: !provider.isPasswordVisible,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return "Password is required";
@@ -75,8 +75,16 @@ class LoginPage extends StatelessWidget {
                     return null;
                   },
                   decoration: InputDecoration(
-                    labelText: "Password",
+                    hintText: "Password",
                     prefixIcon: const Icon(Icons.lock_outline),
+                    suffixIcon: InkWell(
+                      onTap: provider.togglePasswordVisibility,
+                      child: Icon(
+                        provider.isPasswordVisible
+                            ? Icons.visibility
+                            : Icons.visibility_off,
+                      ),
+                    ),
                     filled: true,
                     fillColor: const Color(0xFFF1F5F9),
                     border: OutlineInputBorder(
@@ -101,7 +109,7 @@ class LoginPage extends StatelessWidget {
                     onPressed: provider.isLoading
                         ? null
                         : () async {
-                            if (provider.formKey.currentState!.validate()) {
+                            if (_formKey.currentState!.validate()) {
                               final error = await provider.login(
                                 provider.emailLoginController.text.trim(),
                                 provider.passwordLoginController.text.trim(),
@@ -120,6 +128,7 @@ class LoginPage extends StatelessWidget {
                                   type: SnackBarType.success,
                                 );
                               }
+                              provider.clearFields();
                             }
                           },
                     child: provider.isLoading
@@ -147,8 +156,30 @@ class LoginPage extends StatelessWidget {
                           context,
                           MaterialPageRoute(builder: (_) => const SignUpPage()),
                         );
+                        provider.clearFields();
                       },
-                      child: const Text("Register",style: TextStyle(color: Colors.blue),),
+                      child: const Text(
+                        "Register",
+                        style: TextStyle(color: Colors.blue),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text("Login as a"),
+                    const SizedBox(width: 10),
+                    InkWell(
+                      onTap: () {
+                        provider.clearFields();
+                      },
+                      child: const Text(
+                        "Guest",
+                        style: TextStyle(color: Colors.blue),
+                      ),
                     ),
                   ],
                 ),

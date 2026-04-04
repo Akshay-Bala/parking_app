@@ -1,8 +1,12 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:parking_app/features/admin/dashboard/provider/admin_dashboard_provider.dart';
+import 'package:parking_app/features/admin/parkings/provider/parking_provider.dart';
 import 'package:parking_app/features/login/pages/authentication_check_page.dart';
 import 'package:parking_app/features/login/provider/login_provider.dart';
 import 'package:parking_app/features/register/provider/sign_up_provider.dart';
+import 'package:parking_app/features/user/home/provider/homepage_provider.dart';
+import 'package:parking_app/features/user/profile/provider/profile_provider.dart';
 import 'package:parking_app/firebase_options.dart';
 import 'package:provider/provider.dart';
 
@@ -13,9 +17,12 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => LoginProvider()..init()),
+        ChangeNotifierProvider(create: (_) => LoginProvider()),
         ChangeNotifierProvider(create: (_) => SignUpProvider()),
-
+        ChangeNotifierProvider(create: (_) => ProfileProvider()),
+        ChangeNotifierProvider(create: (_) => DashboardProvider()),
+        ChangeNotifierProvider(create: (_) => ParkingProvider()),
+        ChangeNotifierProvider(create: (_) => HomepageProvider()),
       ],
       child: const MyApp(),
     ),
@@ -48,7 +55,7 @@ class _MyAppState extends State<MyApp> {
         ),
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: AuthenticationCheckPage(),
+      home: const AuthenticationCheckPage(),
     );
   }
 }

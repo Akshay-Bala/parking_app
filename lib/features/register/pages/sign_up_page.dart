@@ -9,14 +9,14 @@ class SignUpPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<SignUpProvider>(context);
-
+    final _formKey = GlobalKey<FormState>();
     return Scaffold(
       backgroundColor: Colors.white,
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Form(
-            key: provider.formKey,
+            key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -42,7 +42,7 @@ class SignUpPage extends StatelessWidget {
                   controller: provider.usernameController,
                   validator: provider.validateUsername,
                   decoration: InputDecoration(
-                    labelText: "Username",
+                    hintText: "Username",
                     prefixIcon: const Icon(Icons.person_outline),
                     filled: true,
                     fillColor: const Color(0xFFF1F5F9),
@@ -60,7 +60,7 @@ class SignUpPage extends StatelessWidget {
                   validator: provider.validatePhone,
                   keyboardType: TextInputType.phone,
                   decoration: InputDecoration(
-                    labelText: "Phone Number",
+                    hintText: "Phone Number",
                     prefixIcon: const Icon(Icons.phone_outlined),
                     filled: true,
                     fillColor: const Color(0xFFF1F5F9),
@@ -77,7 +77,7 @@ class SignUpPage extends StatelessWidget {
                   controller: provider.emailController,
                   validator: provider.validateEmail,
                   decoration: InputDecoration(
-                    labelText: "Email",
+                    hintText: "Email",
                     prefixIcon: const Icon(Icons.email_outlined),
                     filled: true,
                     fillColor: const Color(0xFFF1F5F9),
@@ -93,10 +93,19 @@ class SignUpPage extends StatelessWidget {
                 TextFormField(
                   controller: provider.passwordController,
                   validator: provider.validatePassword,
-                  obscureText: true,
+                  obscureText: !provider.isPasswordVisible,
                   decoration: InputDecoration(
-                    labelText: "Password",
+                    hintText: "Password",
                     prefixIcon: const Icon(Icons.lock_outline),
+
+                    suffixIcon: InkWell(
+                      onTap: provider.togglePasswordVisibility,
+                      child: Icon(
+                        provider.isPasswordVisible
+                            ? Icons.visibility
+                            : Icons.visibility_off,
+                      ),
+                    ),
                     filled: true,
                     fillColor: const Color(0xFFF1F5F9),
                     border: OutlineInputBorder(
@@ -111,10 +120,18 @@ class SignUpPage extends StatelessWidget {
                 TextFormField(
                   controller: provider.confirmPasswordController,
                   validator: provider.validateConfirmPassword,
-                  obscureText: true,
+                  obscureText: !provider.isConfirmPasswordVisible,
                   decoration: InputDecoration(
-                    labelText: "Confirm Password",
+                    hintText: "Confirm Password",
                     prefixIcon: const Icon(Icons.lock_outline),
+                    suffixIcon: InkWell(
+                      onTap: provider.toggleConfirmPasswordVisibility,
+                      child: Icon(
+                        provider.isConfirmPasswordVisible
+                            ? Icons.visibility
+                            : Icons.visibility_off,
+                      ),
+                    ),
                     filled: true,
                     fillColor: const Color(0xFFF1F5F9),
                     border: OutlineInputBorder(
@@ -139,7 +156,7 @@ class SignUpPage extends StatelessWidget {
                     onPressed: provider.isLoading
                         ? null
                         : () async {
-                            if (provider.formKey.currentState!.validate()) {
+                            if (_formKey.currentState!.validate()) {
                               final error = await provider.register();
 
                               if (error != null) {
@@ -155,6 +172,7 @@ class SignUpPage extends StatelessWidget {
                                   type: SnackBarType.success,
                                 );
                                 Navigator.pop(context);
+                                provider.clearFields();
                               }
                             }
                           },
@@ -178,7 +196,10 @@ class SignUpPage extends StatelessWidget {
                     const Text("Already have an account?"),
                     const SizedBox(width: 10),
                     InkWell(
-                      onTap: () => Navigator.pop(context),
+                      onTap: () {
+                        Navigator.pop(context);
+                        provider.clearFields();
+                      },
                       child: const Text(
                         "Login",
                         style: TextStyle(color: Colors.blue),
