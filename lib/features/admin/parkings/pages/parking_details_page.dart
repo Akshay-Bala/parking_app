@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:parking_app/features/admin/parkings/provider/parking_provider.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class ParkingDetailsPage extends StatelessWidget {
@@ -51,10 +53,11 @@ class ParkingDetailsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<ParkingProvider>(context);
+
     final vehicles = List<Map<String, dynamic>>.from(data['vehicles'] ?? []);
     final facilities = data['facilities'] ?? {};
     final timing = data['timing'] ?? {};
-    final location = data['location'];
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FB),
@@ -62,7 +65,7 @@ class ParkingDetailsPage extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: const Color(0xFF2563EB),
         elevation: 0,
-        title: Text(data['name']),
+        title: Text(data['parking_name'] ?? ''),
       ),
 
       body: SingleChildScrollView(
@@ -77,31 +80,77 @@ class ParkingDetailsPage extends StatelessWidget {
                   bottom: Radius.circular(25),
                 ),
               ),
-              child: Column(
+              child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    data['locationName'],
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          data['locationName'] ?? "",
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.location_on,
+                              color: Colors.white70,
+                              size: 14,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              data['city'] ?? "",
+                              style: const TextStyle(color: Colors.white70),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.location_on,
-                        color: Colors.white70,
-                        size: 16,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        data['city'],
-                        style: const TextStyle(color: Colors.white70),
-                      ),
-                    ],
+
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: provider.isParkingActive(data)
+                          ? Colors.green.withOpacity(0.2)
+                          : Colors.red.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 6,
+                          height: 6,
+                          decoration: BoxDecoration(
+                            color: provider.isParkingActive(data)
+                                ? Colors.green
+                                : Colors.red,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          provider.isParkingActive(data) ? "Active" : "Closed",
+                          style: TextStyle(
+                            color: provider.isParkingActive(data)
+                                ? Colors.green
+                                : Colors.red,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -115,128 +164,70 @@ class ParkingDetailsPage extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      _highlightBox("Total", data['totalSlots'], Colors.blue),
+                      _statCard("Total", data['total_slots'], Colors.blue),
                       const SizedBox(width: 10),
-                      _highlightBox(
+                      _statCard(
                         "Available",
-                        data['availableSlots'],
+                        data['available_slots'],
                         Colors.green,
                       ),
                     ],
                   ),
 
-                  const SizedBox(height: 15),
+                  const SizedBox(height: 16),
 
-                  _sectionCard(
-                    "About Parking",
+                  _section(
+                    "About",
                     Icons.description,
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(data['description']),
-
-                        const SizedBox(height: 12),
-
+                        Text(data['description'] ?? ""),
+                        const SizedBox(height: 10),
                         Row(
                           children: [
-                            InkWell(
-                              onTap: callNumber,
-                              borderRadius: BorderRadius.circular(10),
-                              child: Container(
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: const Color(
-                                    0xFF2563EB,
-                                  ).withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: const Icon(
-                                  Icons.call,
-                                  color: Color(0xFF2563EB),
-                                ),
-                              ),
-                            ),
-
-                            const SizedBox(width: 10),
-
-                            Expanded(
-                              child: Text(
-                                data['contact'].toString(),
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-
+                            const Icon(Icons.phone, color: Colors.blue),
+                            const SizedBox(width: 8),
+                            Text(data['contact'].toString()),
                           ],
                         ),
                       ],
                     ),
                   ),
 
-                  _sectionCard(
+                  _section(
                     "Location",
                     Icons.location_on,
                     InkWell(
                       onTap: openMap,
-                      borderRadius: BorderRadius.circular(10),
                       child: Row(
                         children: [
-                          Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF2563EB).withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: const Icon(
-                              Icons.map,
-                              color: Color(0xFF2563EB),
-                            ),
-                          ),
-
-                          const SizedBox(width: 12),
-
+                          const Icon(Icons.map, color: Colors.blue),
+                          const SizedBox(width: 10),
                           Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  data['locationName'] ?? "",
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  "Click to find the location",
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.blue,
-                                  ),
-                                ),
-                              ],
+                            child: Text(
+                              data['locationName'] ?? "",
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
-                          ),
-
-                          const Icon(
-                            Icons.arrow_forward_ios,
-                            size: 14,
-                            color: Colors.grey,
                           ),
                         ],
                       ),
                     ),
                   ),
 
-                  _sectionCard(
+                  _section(
                     "Timing",
                     Icons.access_time,
-                    timing['is24']
-                        ? const Text("Open 24 Hours")
-                        : Text("${timing['start']} - ${timing['end']}"),
+                    Text(
+                      timing['is24']
+                          ? "Open 24 Hours"
+                          : "${timing['start']} - ${timing['end']}",
+                    ),
                   ),
 
-                  _sectionCard(
+                  _section(
                     "Available Days",
                     Icons.calendar_today,
                     Wrap(
@@ -247,45 +238,45 @@ class ParkingDetailsPage extends StatelessWidget {
                     ),
                   ),
 
-                  _sectionCard(
+                  _section(
                     "Vehicle Pricing",
                     Icons.directions_car,
                     Column(
                       children: vehicles.map((v) {
+                        final type = v['type'];
+                        final hour = v['rate_per_hour'];
+                        final day = v['rate_per_day'];
+                        final month = v['rate_per_month'];
+
                         return Container(
                           margin: const EdgeInsets.only(bottom: 10),
                           padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
-                            color: Colors.grey.shade100,
+                            color: Colors.white,
                             borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.03),
+                                blurRadius: 8,
+                              ),
+                            ],
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Row(
-                                children: [
-                                  Icon(
-                                    getVehicleIcon(v['type']),
-                                    color: const Color(0xFF2563EB),
-                                    size: 18,
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    v['type'],
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ],
+                              Text(
+                                type,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                               const SizedBox(height: 8),
-
                               Wrap(
                                 spacing: 10,
                                 children: [
-                                  _priceChip("Hr", v['hour']),
-                                  _priceChip("Day", v['day']),
-                                  _priceChip("Month", v['month']),
+                                  _priceChip("Hr", hour),
+                                  _priceChip("Day", day),
+                                  _priceChip("Month", month),
                                 ],
                               ),
                             ],
@@ -295,26 +286,17 @@ class ParkingDetailsPage extends StatelessWidget {
                     ),
                   ),
 
-                  _sectionCard(
+                  _section(
                     "Facilities",
                     Icons.miscellaneous_services,
                     Wrap(
                       spacing: 10,
-                      runSpacing: 10,
                       children: [
                         _facilityChip("CCTV", facilities['cctv']),
                         _facilityChip("Security", facilities['security']),
                         _facilityChip("Covered", facilities['covered']),
-                        _facilityChip("EV", facilities['ev']),
-                        _facilityChip("Washroom", facilities['washroom']),
                       ],
                     ),
-                  ),
-
-                  _sectionCard(
-                    "Contact",
-                    Icons.phone,
-                    Text("${data['contact']}"),
                   ),
                 ],
               ),
@@ -325,15 +307,42 @@ class ParkingDetailsPage extends StatelessWidget {
     );
   }
 
-  Widget _sectionCard(String title, IconData icon, Widget child) {
+  Widget _statCard(String label, dynamic value, Color color) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: [BoxShadow(color: color.withOpacity(0.1), blurRadius: 10)],
+        ),
+        child: Column(
+          children: [
+            Text(
+              "$value",
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(label, style: const TextStyle(color: Colors.grey)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _section(String title, IconData icon, Widget child) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 15),
-      padding: const EdgeInsets.all(14),
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8),
+          BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10),
         ],
       ),
       child: Column(
@@ -343,40 +352,18 @@ class ParkingDetailsPage extends StatelessWidget {
             children: [
               Icon(icon, size: 18, color: const Color(0xFF2563EB)),
               const SizedBox(width: 8),
-              Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 10),
           child,
         ],
-      ),
-    );
-  }
-
-  Widget _highlightBox(String label, dynamic value, Color color) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [color.withOpacity(0.15), color.withOpacity(0.05)],
-          ),
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Column(
-          children: [
-            Text(label, style: const TextStyle(fontSize: 12)),
-            const SizedBox(height: 6),
-            Text(
-              "$value",
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
-                color: color,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -388,7 +375,7 @@ class ParkingDetailsPage extends StatelessWidget {
         color: const Color(0xFF2563EB).withOpacity(0.08),
         borderRadius: BorderRadius.circular(10),
       ),
-      child: Text("$label: ₹$value", style: const TextStyle(fontSize: 12)),
+      child: Text("$label: ₹$value"),
     );
   }
 

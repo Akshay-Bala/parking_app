@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 class BookingProvider extends ChangeNotifier {
-  /// ---------------- STATE ----------------
   DateTime selectedDate = DateTime.now();
   TimeOfDay? startTime;
   TimeOfDay? endTime;
@@ -12,13 +11,11 @@ class BookingProvider extends ChangeNotifier {
 
   List<Map<String, dynamic>> pricing = [];
 
-  /// ---------------- INIT ----------------
   void setPricing(List<Map<String, dynamic>> data) {
     pricing = data;
     notifyListeners();
   }
 
-  /// ---------------- VEHICLE ----------------
   void addVehicle() {
     vehicles.add({
       "type": "Two Wheeler",
@@ -37,7 +34,6 @@ class BookingProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// ---------------- DATE & TIME ----------------
   void setDate(DateTime date) {
     selectedDate = date;
     notifyListeners();
@@ -53,7 +49,6 @@ class BookingProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// ---------------- CALCULATION ----------------
   double getDuration() {
     if (startTime == null || endTime == null) return 0;
 
@@ -99,7 +94,6 @@ class BookingProvider extends ChangeNotifier {
     return total;
   }
 
-  /// ---------------- VALIDATION ----------------
   String? validate() {
     if (startTime == null || endTime == null) {
       return "Select time";
@@ -114,7 +108,6 @@ class BookingProvider extends ChangeNotifier {
     return null;
   }
 
-  /// ---------------- BOOK ----------------
   Map<String, dynamic> getBookingData(BuildContext context) {
     return {
       "date": selectedDate,

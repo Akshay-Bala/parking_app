@@ -31,15 +31,23 @@ class _MapPickerPageState extends State<MapPickerPage> {
   Future<void> searchPlace(String place) async {
     if (place.isEmpty) return;
 
-    List<Location> locations = await locationFromAddress(place);
+    try {
+      List<Location> locations = await locationFromAddress(place);
 
-    if (locations.isNotEmpty) {
-      final latlng = LatLng(
-        locations.first.latitude,
-        locations.first.longitude,
-      );
+      if (locations.isNotEmpty) {
+        final latlng = LatLng(
+          locations.first.latitude,
+          locations.first.longitude,
+        );
 
-      mapController.move(latlng, 15);
+        setState(() {
+          selectedLatLng = latlng;
+        });
+
+        mapController.move(latlng, 15);
+      }
+    } catch (e) {
+      debugPrint("Search error: $e");
     }
   }
 

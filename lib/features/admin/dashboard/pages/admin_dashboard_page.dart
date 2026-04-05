@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:parking_app/features/admin/dashboard/pages/admin_profile_page.dart';
 import 'package:parking_app/features/admin/dashboard/provider/admin_dashboard_provider.dart';
 import 'package:parking_app/features/admin/dashboard/widgets/widget_dashboard_tile.dart';
 import 'package:provider/provider.dart';
@@ -46,23 +47,67 @@ class AdminDashboardPage extends StatelessWidget {
                   bottom: Radius.circular(25),
                 ),
               ),
-              child: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Welcome, Admin",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  SizedBox(height: 5),
-                  Text(
-                    "Manage your application easily",
-                    style: TextStyle(color: Colors.white70),
-                  ),
-                ],
+              child: Consumer<DashboardProvider>(
+                builder: (context, provider, _) {
+                  return StreamBuilder<DocumentSnapshot>(
+                    stream: provider.getAdminDetails(),
+                    builder: (context, snapshot) {
+                      String username = "Admin";
+
+                      if (snapshot.hasData && snapshot.data!.exists) {
+                        final data =
+                            snapshot.data!.data() as Map<String, dynamic>;
+                        username = data['username'] ?? "Admin";
+                      }
+
+                      return Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "Welcome, $username",
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 5),
+                                const Text(
+                                  "Manage your application easily",
+                                  style: TextStyle(color: Colors.white70),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const AdminProfilePage(),
+                                ),
+                              );
+                            },
+                            child: CircleAvatar(
+                              radius: 22,
+                              backgroundColor: Colors.white,
+                              child: Icon(
+                                Icons.person,
+                                color: Color(0xFF2563EB),
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                },
               ),
             ),
 

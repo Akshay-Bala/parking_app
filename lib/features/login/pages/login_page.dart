@@ -127,8 +127,8 @@ class LoginPage extends StatelessWidget {
                                   message: "Login Successful",
                                   type: SnackBarType.success,
                                 );
+                                provider.clearFields();
                               }
-                              provider.clearFields();
                             }
                           },
                     child: provider.isLoading

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:parking_app/features/user/home/pages/slot_booking.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class UserViewParkingDetailedPage extends StatelessWidget {
@@ -12,6 +11,9 @@ class UserViewParkingDetailedPage extends StatelessWidget {
     final vehicles = List<Map<String, dynamic>>.from(data['vehicles'] ?? []);
     final facilities = data['facilities'] ?? {};
     final timing = data['timing'] ?? {};
+    final displayName = data['parking_name'] ?? data['name'] ?? "";
+    final totalSlots = data['total_slots'] ?? data['totalSlots'];
+    final availableSlots = data['available_slots'] ?? data['availableSlots'];
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
@@ -24,7 +26,7 @@ class UserViewParkingDetailedPage extends StatelessWidget {
             backgroundColor: const Color(0xFF2563EB),
             flexibleSpace: FlexibleSpaceBar(
               title: Text(
-                data['name'] ?? "",
+                displayName,
                 style: const TextStyle(fontSize: 16),
               ),
               background: Container(
@@ -65,11 +67,11 @@ class UserViewParkingDetailedPage extends StatelessWidget {
 
                   Row(
                     children: [
-                      _infoBox("Total", data['totalSlots'], Colors.blue),
+                      _infoBox("Total", totalSlots, Colors.blue),
                       const SizedBox(width: 10),
                       _infoBox(
                         "Available",
-                        data['availableSlots'],
+                        availableSlots,
                         Colors.green,
                       ),
                     ],
@@ -105,14 +107,19 @@ class UserViewParkingDetailedPage extends StatelessWidget {
                     title: "Vehicle Pricing",
                     child: Column(
                       children: vehicles.map((v) {
+                        final hour = v['rate_per_hour'] ?? v['hour'] ?? 0;
+                        final day = v['rate_per_day'] ?? v['day'] ?? 0;
+                        final month = v['rate_per_month'] ?? v['month'] ?? 0;
+                        final type = v['type'] ?? v['vehicle_type'] ?? 'Unknown';
+
                         return ListTile(
                           leading: Icon(
-                            _getVehicleIcon(v['type']),
+                            _getVehicleIcon(type),
                             color: Colors.blue,
                           ),
-                          title: Text(v['type']),
+                          title: Text(type),
                           subtitle: Text(
-                            "Hr: ₹${v['hour']} | Day: ₹${v['day']} | Month: ₹${v['month']}",
+                            "Hr: ₹$hour | Day: ₹$day | Month: ₹$month",
                           ),
                         );
                       }).toList(),

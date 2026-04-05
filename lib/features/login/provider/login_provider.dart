@@ -52,20 +52,21 @@ class LoginProvider extends ChangeNotifier {
   }
 
   Future<String?> login(String email, String password) async {
+    isLoading = true;
+    notifyListeners();
     try {
-      isLoading = true;
-      notifyListeners();
-
       await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
-
       return null;
+    } on FirebaseAuthException catch (e) {
+      return e.message ?? "Login failed";
     } catch (e) {
+      return "Login failed";
+    } finally {
       isLoading = false;
       notifyListeners();
-      return "Login failed";
     }
   }
 

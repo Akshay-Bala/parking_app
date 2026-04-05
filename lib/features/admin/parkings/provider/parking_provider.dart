@@ -12,7 +12,6 @@ class ParkingProvider extends ChangeNotifier {
   TextEditingController description = TextEditingController();
   TextEditingController address = TextEditingController();
   TextEditingController city = TextEditingController();
-  TextEditingController totalSlots = TextEditingController();
   TextEditingController priceHour = TextEditingController();
   TextEditingController priceDay = TextEditingController();
   TextEditingController priceMonth = TextEditingController();
@@ -46,25 +45,68 @@ class ParkingProvider extends ChangeNotifier {
   List<String> selectedDays = [];
   List<VehiclePricing> vehicles = [];
 
-  bool showVehicleSection = false;
-
   double? latitude;
   double? longitude;
   String? locationName;
 
-  void onSlotChanged(String value) {
-    if (value.isNotEmpty && !showVehicleSection) {
-      Future.delayed(const Duration(seconds: 3), () {
-        showVehicleSection = true;
-        notifyListeners();
-      });
+  void addEmptyVehicle(BuildContext context) {
+    final allTypes = ['Two Wheeler', 'Four Wheeler', 'Other'];
+
+    final usedTypes = vehicles.map((e) => e.type).toSet();
+
+    final availableTypes = allTypes
+        .where((t) => !usedTypes.contains(t))
+        .toList();
+
+    if (availableTypes.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("All vehicle types already added")),
+      );
+      return;
     }
 
-    if (value.isEmpty) {
-      showVehicleSection = false;
-      vehicles.clear();
-      notifyListeners();
+    vehicles.add(
+      VehiclePricing(
+        type: availableTypes.first,
+        slots: 0,
+        balanceSlots: 0,
+        hour: 0,
+        day: 0,
+        month: 0,
+      ),
+    );
+
+    notifyListeners();
+  }
+
+  void notifyListen(){
+    notifyListeners();
+  }
+
+  void updateVehicleAt(int index, VehiclePricing vehicle) {
+    if (index < 0 || index >= vehicles.length) return;
+    vehicles[index] = vehicle;
+    notifyListeners();
+  }
+
+  void removeVehicleAt(int index) {
+    if (index < 0 || index >= vehicles.length) return;
+    vehicles.removeAt(index);
+    notifyListeners();
+  }
+
+  int get totalSlotsCount {
+    return vehicles.fold(0, (sum, v) => sum + (v.slots));
+  }
+
+  bool validateVehicles() {
+    if (vehicles.isEmpty) return false;
+    for (final v in vehicles) {
+      if (v.type.trim().isEmpty) return false;
+      if (v.slots < 0) return false;
+      if (v.hour < 0 || v.day < 0 || v.month < 0) return false;
     }
+    return true;
   }
 
   void addVehicle(VehiclePricing vehicle) {
@@ -125,7 +167,7 @@ class ParkingProvider extends ChangeNotifier {
     final uid = FirebaseAuth.instance.currentUser!.uid;
 
     return FirebaseFirestore.instance
-        .collection('parking_places')
+        .collection('parking_slots')
         .where('adminId', isEqualTo: uid)
         .orderBy('createdAt', descending: true)
         .snapshots();
@@ -146,13 +188,13 @@ class ParkingProvider extends ChangeNotifier {
       return false;
     }
 
-    if (totalSlots.text.isEmpty || int.tryParse(totalSlots.text) == null) {
-      _showError(context, "Enter valid total slots");
+    if (vehicles.isEmpty) {
+      _showError(context, "Add at least one vehicle type");
       return false;
     }
 
-    if (vehicles.isEmpty) {
-      _showError(context, "Add at least one vehicle type");
+    if (!validateVehicles()) {
+      _showError(context, "Please fill valid vehicle slots and rates");
       return false;
     }
 
@@ -171,24 +213,18 @@ class ParkingProvider extends ChangeNotifier {
       isLoading = true;
       notifyListeners();
 
-      await FirebaseFirestore.instance.collection('parking_places').add({
-        "name": name.text,
+      final vehiclePayload = vehicles.map((v) => v.toJson()).toList();
+      final total = totalSlotsCount;
+
+      await FirebaseFirestore.instance.collection('parking_slots').add({
+        "parking_name": name.text,
         "description": description.text,
         "address": address.text,
         "city": city.text,
-        "vehicles": vehicles
-            .map(
-              (v) => {
-                "type": v.type,
-                "hour": v.hour,
-                "day": v.day,
-                "month": v.month,
-              },
-            )
-            .toList(),
+        "vehicles": vehiclePayload,
 
-        "totalSlots": int.parse(totalSlots.text),
-        "availableSlots": int.parse(totalSlots.text),
+        "total_slots": total,
+        "available_slots": total,
 
         "location": GeoPoint(latitude!, longitude!),
         "locationName": locationName ?? "",
@@ -224,11 +260,9 @@ class ParkingProvider extends ChangeNotifier {
     description.clear();
     address.clear();
     city.clear();
-    totalSlots.clear();
     contact.clear();
 
     vehicles.clear();
-    showVehicleSection = false;
 
     latitude = null;
     longitude = null;

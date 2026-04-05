@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:parking_app/features/admin/parkings/pages/parking_details_page.dart';
 import 'package:parking_app/features/user/home/pages/user_view_parking_detailed_page.dart';
 import 'package:parking_app/features/user/home/provider/homepage_provider.dart';
 import 'package:parking_app/features/user/profile/pages/profile_page.dart';
@@ -232,7 +231,6 @@ class _HomepageEventsState extends State<HomepageEvents> {
                                 size: 16,
                               ),
 
-                              /// ✅ NAVIGATION HERE
                               onTap: () {
                                 Navigator.push(
                                   context,

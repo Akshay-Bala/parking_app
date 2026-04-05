@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:parking_app/features/admin/parkings/widgets/add_vehicle_type.dart';
+import 'package:flutter/services.dart';
+import 'package:parking_app/features/admin/parkings/models/model_vehicle_price.dart';
 import 'package:parking_app/features/admin/parkings/widgets/map_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:parking_app/features/admin/parkings/provider/parking_provider.dart';
@@ -14,20 +15,6 @@ class AddParkingPage extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FB),
-
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: const Color(0xFF2563EB),
-        title: const Text(
-          "Add Parking",
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-
       body: Column(
         children: [
           Container(
@@ -40,6 +27,7 @@ class AddParkingPage extends StatelessWidget {
             child: const Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                const SizedBox(height: 90),
                 Text(
                   "Add New Parking",
                   style: TextStyle(
@@ -186,81 +174,305 @@ class AddParkingPage extends StatelessWidget {
                           ),
                         ),
                       const SizedBox(height: 12),
-                      _buildField(
-                        provider.totalSlots,
-                        "Total Slots",
-                        isNumber: true,
-                        onChanged: provider.onSlotChanged,
-                      ),
+                      const SizedBox(height: 15),
 
-                      if (provider.showVehicleSection) ...[
-                        const SizedBox(height: 15),
-
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey.shade300),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Column(
-                            children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: const [
-                                  Text(
-                                    "Type",
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey.shade300),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text(
+                                  "Vehicles",
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                IconButton(
+                                  onPressed: () =>
+                                      provider.addEmptyVehicle(context),
+                                  icon: const Icon(
+                                    Icons.add_circle,
+                                    color: Color(0xFF2563EB),
                                   ),
-                                  Text("Hr"),
-                                  Text("Day"),
-                                  Text("Month"),
-                                ],
-                              ),
+                                ),
+                              ],
+                            ),
 
-                              const Divider(),
+                            const SizedBox(height: 8),
 
-                              ...provider.vehicles.map((v) {
-                                return Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 6,
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
+                            if (provider.vehicles.isEmpty)
+                              const Text("No vehicle types added yet."),
+
+                            ...provider.vehicles.asMap().entries.map((entry) {
+                              final index = entry.key;
+                              final v = entry.value;
+
+                              return Card(
+                                color: Colors.white,
+                                margin: const EdgeInsets.symmetric(vertical: 8),
+                                elevation: 2,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(12),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
                                     children: [
-                                      Text(v.type),
-                                      Text(v.hour.toString()),
-                                      Text(v.day.toString()),
-                                      Text(v.month.toString()),
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child:
+                                                DropdownButtonFormField<String>(
+                                                  value: v.type,
+                                                  items: const [
+                                                    DropdownMenuItem(
+                                                      value: 'Two Wheeler',
+                                                      child: Text(
+                                                        'Two Wheeler',
+                                                      ),
+                                                    ),
+                                                    DropdownMenuItem(
+                                                      value: 'Four Wheeler',
+                                                      child: Text(
+                                                        'Four Wheeler',
+                                                      ),
+                                                    ),
+                                                    DropdownMenuItem(
+                                                      value: 'Other',
+                                                      child: Text('Other'),
+                                                    ),
+                                                  ],
+                                                  onChanged: (val) {
+                                                    if (val == null) return;
+                                                    provider.updateVehicleAt(
+                                                      index,
+                                                      VehiclePricing(
+                                                        type: val,
+                                                        slots: v.slots,
+                                                        balanceSlots:
+                                                            v.balanceSlots,
+                                                        hour: v.hour,
+                                                        day: v.day,
+                                                        month: v.month,
+                                                      ),
+                                                    );
+                                                  },
+                                                  decoration:
+                                                      const InputDecoration(
+                                                        labelText:
+                                                            'Vehicle Type',
+                                                        border:
+                                                            OutlineInputBorder(),
+                                                      ),
+                                                ),
+                                          ),
+                                          IconButton(
+                                            onPressed: () {
+                                              provider.removeVehicleAt(index);
+                                            },
+                                            icon: const Icon(
+                                              Icons.delete,
+                                              color: Colors.red,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+
+                                      const SizedBox(height: 8),
+
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: TextFormField(
+                                              initialValue: v.slots.toString(),
+                                              keyboardType:
+                                                  TextInputType.number,
+                                              inputFormatters: [
+                                                FilteringTextInputFormatter
+                                                    .digitsOnly,
+                                              ],
+                                              decoration: const InputDecoration(
+                                                labelText: 'Slots',
+                                                border: OutlineInputBorder(),
+                                              ),
+                                              validator: (val) {
+                                                if (val == null || val.isEmpty)
+                                                  return 'Required';
+                                                if (int.tryParse(val) == null)
+                                                  return 'Enter valid number';
+                                                return null;
+                                              },
+                                              onChanged: (val) {
+                                                final s =
+                                                    int.tryParse(val) ?? 0;
+                                                provider.updateVehicleAt(
+                                                  index,
+                                                  VehiclePricing(
+                                                    balanceSlots: s,
+                                                    type: v.type,
+                                                    slots: s,
+                                                    hour: v.hour,
+                                                    day: v.day,
+                                                    month: v.month,
+                                                  ),
+                                                );
+                                              },
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                            child: TextFormField(
+                                              initialValue: v.hour.toString(),
+                                              keyboardType:
+                                                  const TextInputType.numberWithOptions(
+                                                    decimal: true,
+                                                  ),
+                                              inputFormatters: [
+                                                FilteringTextInputFormatter.allow(
+                                                  RegExp(r'[0-9.]'),
+                                                ),
+                                              ],
+                                              decoration: const InputDecoration(
+                                                labelText: 'Rate / Hr',
+                                                border: OutlineInputBorder(),
+                                              ),
+                                              validator: (val) {
+                                                if (val == null || val.isEmpty)
+                                                  return 'Required';
+                                                if (double.tryParse(val) ==
+                                                    null)
+                                                  return 'Enter valid number';
+                                                return null;
+                                              },
+                                              onChanged: (val) {
+                                                final numVal =
+                                                    double.tryParse(val) ?? 0;
+                                                provider.updateVehicleAt(
+                                                  index,
+                                                  VehiclePricing(
+                                                    balanceSlots:
+                                                        v.balanceSlots,
+                                                    type: v.type,
+                                                    slots: v.slots,
+                                                    hour: numVal,
+                                                    day: v.day,
+                                                    month: v.month,
+                                                  ),
+                                                );
+                                              },
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+
+                                      const SizedBox(height: 8),
+
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: TextFormField(
+                                              initialValue: v.day.toString(),
+                                              keyboardType:
+                                                  const TextInputType.numberWithOptions(
+                                                    decimal: true,
+                                                  ),
+                                              inputFormatters: [
+                                                FilteringTextInputFormatter.allow(
+                                                  RegExp(r'[0-9.]'),
+                                                ),
+                                              ],
+                                              decoration: const InputDecoration(
+                                                labelText: 'Rate / Day',
+                                                border: OutlineInputBorder(),
+                                              ),
+                                              validator: (val) {
+                                                if (val == null || val.isEmpty)
+                                                  return 'Required';
+                                                if (double.tryParse(val) ==
+                                                    null)
+                                                  return 'Enter valid number';
+                                                return null;
+                                              },
+                                              onChanged: (val) {
+                                                final numVal =
+                                                    double.tryParse(val) ?? 0;
+                                                provider.updateVehicleAt(
+                                                  index,
+                                                  VehiclePricing(
+                                                    balanceSlots:
+                                                        v.balanceSlots,
+                                                    type: v.type,
+                                                    slots: v.slots,
+                                                    hour: v.hour,
+                                                    day: numVal,
+                                                    month: v.month,
+                                                  ),
+                                                );
+                                              },
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                            child: TextFormField(
+                                              initialValue: v.month.toString(),
+                                              keyboardType:
+                                                  const TextInputType.numberWithOptions(
+                                                    decimal: true,
+                                                  ),
+                                              inputFormatters: [
+                                                FilteringTextInputFormatter.allow(
+                                                  RegExp(r'[0-9.]'),
+                                                ),
+                                              ],
+                                              decoration: const InputDecoration(
+                                                labelText: 'Rate / Month',
+                                                border: OutlineInputBorder(),
+                                              ),
+                                              validator: (val) {
+                                                if (val == null || val.isEmpty)
+                                                  return 'Required';
+                                                if (double.tryParse(val) ==
+                                                    null)
+                                                  return 'Enter valid number';
+                                                return null;
+                                              },
+                                              onChanged: (val) {
+                                                final numVal =
+                                                    double.tryParse(val) ?? 0;
+                                                provider.updateVehicleAt(
+                                                  index,
+                                                  VehiclePricing(
+                                                    balanceSlots:
+                                                        v.balanceSlots,
+                                                    type: v.type,
+                                                    slots: v.slots,
+                                                    hour: v.hour,
+                                                    day: v.day,
+                                                    month: numVal,
+                                                  ),
+                                                );
+                                              },
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ],
                                   ),
-                                );
-                              }),
-
-                              const Divider(),
-
-                              Align(
-                                alignment: Alignment.centerLeft,
-                                child: TextButton.icon(
-                                  onPressed: () {
-                                    showDialog(
-                                      context: context,
-                                      builder: (_) =>
-                                          AddVehicleDialog(provider: provider),
-                                    );
-                                  },
-                                  icon: const Icon(Icons.add),
-                                  label: const Text("Add Vehicle"),
                                 ),
-                              ),
-                            ],
-                          ),
+                              );
+                            }).toList(),
+                          ],
                         ),
-                      ],
+                      ),
+                      const SizedBox(height: 20),
                       _buildField(
                         provider.contact,
                         "Contact Number",
@@ -270,12 +482,14 @@ class AddParkingPage extends StatelessWidget {
                       const SizedBox(height: 10),
 
                       SwitchListTile(
+                        inactiveTrackColor: Colors.white,
+                        inactiveThumbColor: Colors.black,
                         activeColor: const Color(0xFF2563EB),
                         title: const Text("24 Hours"),
                         value: provider.is24Hours,
                         onChanged: (val) {
                           provider.is24Hours = val;
-                          provider.notifyListeners();
+                          provider.notifyListen();
                         },
                       ),
                       if (!provider.is24Hours) ...[
@@ -290,9 +504,13 @@ class AddParkingPage extends StatelessWidget {
                                   );
                                   if (picked != null) {
                                     provider.startTime = picked;
-                                    provider.notifyListeners();
+                                    provider.notifyListen();
                                   }
                                 },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Color(0xFF2563EB),
+                                  foregroundColor: Colors.white,
+                                ),
                                 child: Text(
                                   provider.startTime == null
                                       ? "Start Time"
@@ -312,9 +530,13 @@ class AddParkingPage extends StatelessWidget {
                                   );
                                   if (picked != null) {
                                     provider.endTime = picked;
-                                    provider.notifyListeners();
+                                    provider.notifyListen();
                                   }
                                 },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Color(0xFF2563EB),
+                                  foregroundColor: Colors.white,
+                                ),
                                 child: Text(
                                   provider.endTime == null
                                       ? "End Time"
@@ -345,6 +567,7 @@ class AddParkingPage extends StatelessWidget {
                           );
 
                           return ChoiceChip(
+                            backgroundColor: Colors.white,
                             label: Text(day),
                             selected: isSelected,
                             selectedColor: const Color(0xFF2563EB),
@@ -369,7 +592,7 @@ class AddParkingPage extends StatelessWidget {
                         value: provider.cctv,
                         onChanged: (val) {
                           provider.cctv = val!;
-                          provider.notifyListeners();
+                          provider.notifyListen();
                         },
                       ),
                       Consumer<ParkingProvider>(
@@ -381,7 +604,7 @@ class AddParkingPage extends StatelessWidget {
                                 value: provider.security,
                                 onChanged: (val) {
                                   provider.security = val ?? false;
-                                  provider.notifyListeners();
+                                  provider.notifyListen();
                                 },
                               ),
 
@@ -390,7 +613,7 @@ class AddParkingPage extends StatelessWidget {
                                 value: provider.covered,
                                 onChanged: (val) {
                                   provider.covered = val ?? false;
-                                  provider.notifyListeners();
+                                  provider.notifyListen();
                                 },
                               ),
                             ],

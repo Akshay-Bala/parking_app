@@ -12,8 +12,8 @@ class HomepageProvider extends ChangeNotifier {
 
   TextEditingController searchController = TextEditingController();
 
-  bool isPageLoading = false; // for init / API
-  bool isSearching = false; // for search button
+  bool isPageLoading = false; 
+  bool isSearching = false; 
   String? error;
   String? currentLocationName;
   String? selectedLocationName;
@@ -140,7 +140,7 @@ class HomepageProvider extends ChangeNotifier {
       notifyListeners();
 
       final snapshot = await FirebaseFirestore.instance
-          .collection('parking_places')
+          .collection('parking_slots')
           .get();
 
       List<Map<String, dynamic>> tempNearby = [];
