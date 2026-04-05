@@ -178,7 +178,7 @@ class _HomepageEventsState extends State<HomepageEvents> {
 
                           return Container(
                             margin: const EdgeInsets.only(bottom: 12),
-                            padding: const EdgeInsets.all(12),
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(14),
@@ -190,7 +190,6 @@ class _HomepageEventsState extends State<HomepageEvents> {
                               ],
                             ),
                             child: ListTile(
-                              contentPadding: EdgeInsets.zero,
 
                               leading: const Icon(
                                 Icons.local_parking,
@@ -208,13 +207,24 @@ class _HomepageEventsState extends State<HomepageEvents> {
                               subtitle: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
+                                  Text(
+                                    data['parking_name'] ?? "",
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                   Text(
+                                    data['address'] ?? "",
+                                    
+                                  ),
+                                  const SizedBox(height: 4), Text(
+                                    data['city'] ?? "",
+                                  
+                                  ),
                                   const SizedBox(height: 4),
                                   Text(data['locationName'] ?? ""),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    "🚗 Available: ${data['availableSlots']}",
-                                    style: const TextStyle(color: Colors.green),
-                                  ),
                                   const SizedBox(height: 4),
                                   Text(
                                     "📍 ${data['distance'].toStringAsFixed(2)} km away",

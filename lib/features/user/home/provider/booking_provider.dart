@@ -5,28 +5,36 @@ class BookingProvider extends ChangeNotifier {
   TimeOfDay? startTime;
   TimeOfDay? endTime;
 
-  List<Map<String, dynamic>> vehicles = [
-    {"type": "Two Wheeler", "controller": TextEditingController()},
-  ];
-
+  List<Map<String, dynamic>> vehicles = [];
   List<Map<String, dynamic>> pricing = [];
 
   void setPricing(List<Map<String, dynamic>> data) {
     pricing = data;
+
+    vehicles = [
+      {
+        "type": data.isNotEmpty ? data.first['type'] : "",
+        "controller": TextEditingController(),
+      },
+    ];
+
     notifyListeners();
   }
 
   void addVehicle() {
     vehicles.add({
-      "type": "Two Wheeler",
+      "type": pricing.isNotEmpty ? pricing.first['type'] : "",
       "controller": TextEditingController(),
     });
     notifyListeners();
   }
 
   void removeVehicle(int index) {
-    vehicles.removeAt(index);
-    notifyListeners();
+    if (vehicles.length > 1) {
+      vehicles[index]["controller"].dispose();
+      vehicles.removeAt(index);
+      notifyListeners();
+    }
   }
 
   void updateVehicleType(int index, String type) {
@@ -68,6 +76,8 @@ class BookingProvider extends ChangeNotifier {
       endTime!.minute,
     );
 
+    if (end.isBefore(start)) return 0;
+
     return end.difference(start).inMinutes / 60;
   }
 
@@ -75,11 +85,11 @@ class BookingProvider extends ChangeNotifier {
     double hours = getDuration();
 
     final priceData = pricing.firstWhere(
-          (e) => e['type'] == type,
+      (e) => e['type'] == type,
       orElse: () => {},
     );
 
-    double price = (priceData['hour'] ?? 0).toDouble();
+    double price = (priceData['rate_per_hour'] ?? 0).toDouble();
 
     return price * hours;
   }
@@ -99,8 +109,12 @@ class BookingProvider extends ChangeNotifier {
       return "Select time";
     }
 
+    if (getDuration() <= 0) {
+      return "Invalid time selection";
+    }
+
     for (var v in vehicles) {
-      if (v["controller"].text.isEmpty) {
+      if (v["controller"].text.trim().isEmpty) {
         return "Enter all vehicle numbers";
       }
     }
@@ -116,10 +130,7 @@ class BookingProvider extends ChangeNotifier {
       "duration": getDuration(),
       "total": getTotalAmount(),
       "vehicles": vehicles.map((v) {
-        return {
-          "type": v["type"],
-          "number": v["controller"].text,
-        };
+        return {"type": v["type"], "number": v["controller"].text.trim()};
       }).toList(),
     };
   }

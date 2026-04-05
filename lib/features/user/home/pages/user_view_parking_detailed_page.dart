@@ -1,8 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:parking_app/features/user/home/pages/slot_booking.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class UserViewParkingDetailedPage extends StatelessWidget {
   final Map<String, dynamic> data;
+
+  void openMapWithCoordinates() async {
+    final lat = data['location']?.latitude;
+    final lng = data['location']?.longitude;
+    final name = data['locationName'] ?? "Parking Location";
+    if (lat == null || lng == null) return;
+    final query = Uri.encodeComponent("$lat,$lng ($name)");
+    final uri = Uri.parse(
+      "https://www.google.com/maps/search/?api=1&query=$query",
+    );
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
+  }
 
   const UserViewParkingDetailedPage({super.key, required this.data});
 
@@ -12,7 +25,7 @@ class UserViewParkingDetailedPage extends StatelessWidget {
     final facilities = data['facilities'] ?? {};
     final timing = data['timing'] ?? {};
     final displayName = data['parking_name'] ?? data['name'] ?? "";
-    final totalSlots = data['total_slots'] ?? data['totalSlots'];
+    // final totalSlots = data['total_slots'] ?? data['totalSlots'];
     final availableSlots = data['available_slots'] ?? data['availableSlots'];
 
     return Scaffold(
@@ -25,10 +38,7 @@ class UserViewParkingDetailedPage extends StatelessWidget {
             pinned: true,
             backgroundColor: const Color(0xFF2563EB),
             flexibleSpace: FlexibleSpaceBar(
-              title: Text(
-                displayName,
-                style: const TextStyle(fontSize: 16),
-              ),
+              title: Text(displayName, style: const TextStyle(fontSize: 16)),
               background: Container(
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
@@ -67,13 +77,9 @@ class UserViewParkingDetailedPage extends StatelessWidget {
 
                   Row(
                     children: [
-                      _infoBox("Total", totalSlots, Colors.blue),
+                      // _infoBox("Total", totalSlots, Colors.blue),
                       const SizedBox(width: 10),
-                      _infoBox(
-                        "Available",
-                        availableSlots,
-                        Colors.green,
-                      ),
+                      _infoBox("Available", availableSlots, Colors.green),
                     ],
                   ),
 
@@ -104,25 +110,97 @@ class UserViewParkingDetailedPage extends StatelessWidget {
                   ),
 
                   _card(
-                    title: "Vehicle Pricing",
+                    title: "Vehicle Details",
                     child: Column(
                       children: vehicles.map((v) {
-                        final hour = v['rate_per_hour'] ?? v['hour'] ?? 0;
-                        final day = v['rate_per_day'] ?? v['day'] ?? 0;
-                        final month = v['rate_per_month'] ?? v['month'] ?? 0;
-                        final type = v['type'] ?? v['vehicle_type'] ?? 'Unknown';
+                        final hour = v['rate_per_hour'] ?? 0;
+                        final day = v['rate_per_day'] ?? 0;
+                        final month = v['rate_per_month'] ?? 0;
+                        final type = v['type'] ?? 'Unknown';
+                        final slots = v['slots'] ?? 0;
+                        final balance = v['balance_slots'] ?? 0;
 
-                        return ListTile(
-                          leading: Icon(
-                            _getVehicleIcon(type),
-                            color: Colors.blue,
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 10),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade50,
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                          title: Text(type),
-                          subtitle: Text(
-                            "Hr: ₹$hour | Day: ₹$day | Month: ₹$month",
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                            
+                              Row(
+                                children: [
+                                  Icon(
+                                    _getVehicleIcon(type),
+                                    color: Colors.blue,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    type,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+
+                              const SizedBox(height: 6),
+
+                              // Text("Total Slots: $slots"),
+                              // Text("Available: $balance"),
+                              const SizedBox(height: 6),
+
+                              Wrap(
+                                spacing: 10,
+                                children: [
+                                  _priceChip("Hr", hour),
+                                  _priceChip("Day", day),
+                                  _priceChip("Month", month),
+                                ],
+                              ),
+                            ],
                           ),
                         );
                       }).toList(),
+                    ),
+                  ),
+                  _card(
+                    title: "Address",
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(data['address'] ?? ""),
+                        const SizedBox(height: 4),
+                        Text(
+                          data['city'] ?? "",
+                          style: const TextStyle(color: Colors.grey),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  _card(
+                    title: "Coordinates",
+                    child: GestureDetector(
+                      onTap: () => openMapWithCoordinates(),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.location_pin, color: Colors.red),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              "${data['location']?.latitude}, ${data['location']?.longitude}",
+                              style: const TextStyle(
+                                color: Colors.blue,
+                                decoration: TextDecoration.underline,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
 
@@ -144,13 +222,12 @@ class UserViewParkingDetailedPage extends StatelessWidget {
                     title: "Contact",
                     child: Row(
                       children: [
-                        const Icon(Icons.phone, color: Colors.green),
-                        const SizedBox(width: 10),
-                        Expanded(child: Text("${data['contact']}")),
                         IconButton(
-                          icon: const Icon(Icons.call),
+                          icon: const Icon(Icons.call, color: Colors.green),
                           onPressed: () => _callNumber(),
                         ),
+                        const SizedBox(width: 10),
+                        Expanded(child: Text("${data['contact']}")),
                       ],
                     ),
                   ),
@@ -168,12 +245,13 @@ class UserViewParkingDetailedPage extends StatelessWidget {
                         ),
                       ),
                       onPressed: () {
-                        // Navigator.push(
-                        //   context,
-                        //   MaterialPageRoute(
-                        //     builder: (context) => SlotBooking(pricing: vehicles,),
-                        //   ),
-                        // );
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                SlotBooking(pricing: vehicles),
+                          ),
+                        );
                       },
                       child: const Text(
                         "Book Slot",
@@ -188,6 +266,17 @@ class UserViewParkingDetailedPage extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _priceChip(String label, dynamic value) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: const Color(0xFF2563EB).withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text("$label: ₹$value"),
     );
   }
 

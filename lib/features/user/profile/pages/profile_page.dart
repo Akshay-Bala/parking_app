@@ -67,7 +67,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                 child: CircleAvatar(
                                   radius: 40,
                                   backgroundImage: NetworkImage(
-                                    "https://i.pravatar.cc/150",
+                                    "https://i.pravatar.cc/150?img=3",
                                   ),
                                 ),
                               ),
